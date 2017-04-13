@@ -20,7 +20,8 @@ defmodule Belt.Mixfile do
      name: "Belt",
      docs: [
       canonical: "http://hexdocs.pm/belt",
-      source_url: "https://github.com/pentacent/belt",
+      source_url: "https://bitbucket.com/pentacent/belt",
+      homepage_url: "https://bitbucket.org/pentacent/belt"
      ]
     ]
   end
@@ -51,7 +52,8 @@ defmodule Belt.Mixfile do
       files: ["lib", "mix.exs", "README*", "LICENSE*", "test", "config/config.exs"],
       licenses: ["Apache 2", "GNU AGPLv3"],
       links: %{"Bitbucket" => "https://bitbucket.org/pentacent/belt",
-               "Issues" => "https://bitbucket.org/pentacent/belt/issues"}
+               "Issues" => "https://bitbucket.org/pentacent/belt/issues"},
+      maintainers: ["Philipp Schmieder"],
     ]
   end
 
