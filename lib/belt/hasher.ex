@@ -1,0 +1,134 @@
+defmodule Belt.Hasher do
+  @moduledoc """
+  Library for hashing files, streams and binary data.
+
+  ## Usage
+  ```
+  Belt.Hasher.hash("foo", :sha256)
+  #=> "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+
+  #Hashing a file
+  Belt.Hasher.hash_file("/dev/null", :md5)
+  #=> "d41d8cd98f00b204e9800998ecf8427e"
+
+  #Using multiple hashing algorithms at once
+  Belt.Hasher.hash("foo", [:md5, :sha])
+  #=> ["acbd18db4cc2f85cedef654fccc4a4d8", "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"]
+
+  #Obtaining the raw bytes of the hash
+  Belt.Hasher.hash("foo", :md5, encoding: :raw)
+  #=> <<172, 189, 24, 219, 76, 194, 248, 92, 237, 239, 101, 79, 204, 196, 164, 216>>
+
+  #Creating a hash from a stream
+  {:ok, stream} = StringIO.open("foo")
+  stream |> IO.binstream(1) |> Hasher.hash_stream(:sha)
+  #=> "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
+  ```
+
+  ## Supported algorithms
+  All algorithms supported by `:crypto.hash/2` can be used with Hasher:
+  - md4
+  - md5
+  - ripemd160
+  - sha
+  - sha224
+  - sha256
+  - sha384
+  - sha512
+  """
+
+  @stream_size Application.fetch_env!(:belt, Belt.Hasher)[:stream_size]
+
+  @type option ::
+    {:encoding, :raw | :base16 | :base32 | :base64} |
+    {:case, :lower | :upper}
+
+  @doc """
+  Hashes binary data with the given hashing algorithm(s).
+
+  ## Supported algorithms
+  All algorithms supported by `:crypto.hash/2` can be used with Hasher.
+
+  ## Options
+  - `:encoding` - Encoding of the hash output. Possible values: `:raw`,
+    `:base16`, `base32`, `:base64`. Defaults to `:base16`
+  - `:case` - When using encodings other than `:raw`. Possible values:
+    `:lower`, `:upper`. Defaults to `:lower`
+
+  ## Example
+  ```
+  Belt.Hasher.hash("foo", :sha256)
+  #=> "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+  ```
+  """
+  @spec hash(binary, [:crypto.hash_algorithms], [option]) :: [binary]
+  @spec hash(binary, :crypto.hash_algorithms, [option]) :: binary
+
+  def hash(data, algs, options \\ [])
+  def hash(data, alg, options) when not is_list(alg),
+    do: hash(data, [alg], options) |> Enum.at(0)
+
+  def hash(data, algs, options) do
+    algs
+    |> Enum.map(&:crypto.hash(&1, data))
+    |> Enum.map(&(postprocess_hash(&1, options)))
+  end
+
+
+  @doc """
+    Hashes a stream with the given hashing algorithm(s).
+
+    Please note that only finite streams can be hashed.
+
+    For supported options, see `Belt.Hasher.hash/3`
+  """
+  @spec hash_stream(Stream.t, [:crypto.hash_algorithms], [option]) :: [binary]
+  @spec hash_stream(Stream.t, :crypto.hash_algorithms, [option]) :: binary
+  def hash_stream(stream, algs, options \\ [])
+  def hash_stream(stream, alg, options) when not is_list(alg),
+    do: hash_stream(stream, [alg], options) |> Enum.at(0)
+
+  def hash_stream(stream, algs, options) do
+    contexts = Enum.map(algs, &:crypto.hash_init(&1))
+    stream
+    |> Enum.reduce(contexts, fn(data, contexts) ->
+      Enum.map(contexts, &:crypto.hash_update(&1, data))
+    end)
+    |> Enum.map(fn(hash) ->
+      :crypto.hash_final(hash)
+      |> postprocess_hash(options)
+    end)
+  end
+
+  @doc """
+    Streams and hashes a file at `path` with the given hashing algorithm(s).
+
+    For supported options, see `Belt.Hasher.hash/3`
+  """
+  @spec hash_file(Path.t, :crypto.hash_algorithms, [option]) :: binary
+  @spec hash_file(Path.t, [:crypto.hash_algorithms], [option]) ::[binary]
+  def hash_file(path, algs, options \\ [])
+  def hash_file(path, alg, options) when not is_list(alg),
+    do: hash_file(path, [alg], options) |> Enum.at(0)
+
+  def hash_file(path, algs, options) do
+    Path.expand(path)
+    |> File.stream!([:read], @stream_size)
+    |> hash_stream(algs, options)
+  end
+
+
+  #Apply encoding and formatting
+  @spec postprocess_hash(binary, [option]) :: binary
+  defp postprocess_hash(hash, options) do
+    case Keyword.get(options, :encoding, :base16) do
+      :raw -> hash
+      :base16 ->
+        Base.encode16(hash, case: Keyword.get(options, :case, :lower))
+      :base32 ->
+        Base.encode32(hash, case: Keyword.get(options, :case, :lower))
+      :base64 ->
+        Base.encode64(hash, case: Keyword.get(options, :case, :lower))
+     end
+  end
+end

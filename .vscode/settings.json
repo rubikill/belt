@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "workbench.editor.revealIfOpen": true,
+  "files.exclude": {
+    "cover/*": true,
+    "doc/*": true,
+    ".build/*": true,
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true
+  }
+}
