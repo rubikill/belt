@@ -20,7 +20,7 @@ defmodule Belt.Mixfile do
      name: "Belt",
      docs: [
       canonical: "http://hexdocs.pm/belt",
-      source_url: "https://bitbucket.com/pentacent/belt",
+      source_url: "https://bitbucket.org/pentacent/belt",
       homepage_url: "https://bitbucket.org/pentacent/belt"
      ]
     ]
