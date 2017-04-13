@@ -1,0 +1,8 @@
+image: elixir:latest
+
+pipelines:
+  default:
+    - step:
+        script:
+          - mix deps.get
+          - mix test
