@@ -1,6 +1,4 @@
 defmodule Belt.Job do
-  use GenServer
-
   @moduledoc """
   A mechanism for maintaining state across the Belt processing chain.
 
@@ -27,6 +25,10 @@ defmodule Belt.Job do
   #=> :timeout
   ```
   """
+
+  use GenServer
+
+  @timeout Belt.Config.timeout()
 
   @typedoc "The Job name"
   @type name :: {:via, module, term}
@@ -100,7 +102,7 @@ defmodule Belt.Job do
   instead.
   """
   @spec await(t | term, integer | :infinity) :: {:ok, term} | :timeout
-  def await(job, timeout \\ 5000) do
+  def await(job, timeout \\ @timeout) do
     job = get_job(job)
 
     if (finished?(job)) do
@@ -129,7 +131,7 @@ defmodule Belt.Job do
   has been received or `timeout` has expired.
   """
   @spec await_and_shutdown(t | term, integer | :infinity) :: {:ok, term} | :timeout
-  def await_and_shutdown(job, timeout \\ 5000) do
+  def await_and_shutdown(job, timeout \\ @timeout) do
     job = get_job(job)
     reply = await(job, timeout)
     shutdown(job)
