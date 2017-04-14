@@ -1,10 +1,11 @@
 defmodule Belt.Test.Provider do
+  @callback run?() :: term
   defmacro __using__(options) do
     quote do
       use ExUnit.Case
-      doctest unquote(options)[:provider]
-
-      @moduletag unquote(options)
+      @test_options unquote(options)
+      @moduletag @test_options
+      doctest @test_options[:provider]
 
       defp config_opts(context), do: []
       defoverridable [config_opts: 1]
@@ -42,13 +43,6 @@ defmodule Belt.Test.Provider do
         end)
 
         {:ok, _files: files}
-      end
-
-      setup context do
-        case config_opts(context) do
-          {:error, message} -> flunk(message)
-          _other -> {:ok, []}
-        end
       end
 
       test "create configuration",

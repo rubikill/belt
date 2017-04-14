@@ -1,6 +1,5 @@
-defmodule Belt.Test.Provider.S3 do
-  use Belt.Test.Provider,
-    provider: Belt.Provider.S3
+defmodule Belt.Test.Provider.S3.Helper do
+  require Logger
 
   defp fetch_var(var) do
     Application.fetch_env(:belt, Belt.Test.Provider.S3)
@@ -19,7 +18,6 @@ defmodule Belt.Test.Provider.S3 do
     case System.get_env(env_var) do
       nil ->
         {:error,
-         "Missing config for Belt.Provider.S3 test. " <>
          "Set \"config :belt, Belt.Test.Provider.S3, #{var}: val\" "<>
          "or environment variable \"#{env_var}\""}
       "true" -> true
@@ -47,6 +45,29 @@ defmodule Belt.Test.Provider.S3 do
       do: Enum.zip(vars, vals),
       else: {:error, Enum.join(errors, "\n")}
   end
+
+  def skip?() do
+    case config_opts([]) do
+      {:error, message} ->
+        """
+        Missing test configuration for Belt.Provider.S3.
+        #{message}
+        Skipping tests.
+        """
+        |> Logger.debug()
+        true
+      _other -> false
+    end
+  end
+end
+
+defmodule Belt.Test.Provider.S3 do
+  use Belt.Test.Provider,
+    provider: Belt.Provider.S3,
+    skip: Belt.Test.Provider.S3.Helper.skip?()
+
+    def config_opts(context),
+      do: Belt.Test.Provider.S3.Helper.config_opts(context)
 
   test "get presigned url",
       %{provider: provider, _files: [file | _]} = context do
