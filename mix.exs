@@ -28,7 +28,7 @@ defmodule Belt.Mixfile do
 
   def application do
     [mod: {Belt.Application, []},
-     extra_applications: [:ex_aws, :hackney, :sweet_xml, :logger]]
+     extra_applications: [:logger]]
   end
 
   # Specifies which paths to compile per environment
