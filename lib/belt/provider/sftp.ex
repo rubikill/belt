@@ -5,8 +5,8 @@ defmodule Belt.Provider.SFTP do
   alias :ssh_sftp, as: SFTP
   alias Belt.Provider.Helpers
 
-  @max_renames 10
-  @stream_size 1_048_576 #1 MiB
+  @max_renames Belt.Config.max_renames()
+  @stream_size Belt.Config.stream_size()
 
   @typedoc """
   Public key or public key fingerprint.

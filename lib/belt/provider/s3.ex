@@ -28,7 +28,7 @@ defmodule Belt.Provider.S3 do
   use Belt.Provider
   alias Belt.Provider.Helpers
 
-  @max_renames Application.fetch_env!(:belt, :max_renames)
+  @max_renames Belt.Config.max_renames()
 
   @typedoc """
   Options for creating an Filesystem provider.

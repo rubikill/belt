@@ -37,7 +37,7 @@ defmodule Belt.Hasher do
   - sha512
   """
 
-  @stream_size Application.fetch_env!(:belt, Belt.Hasher)[:stream_size]
+  @stream_size Belt.Config.stream_size()
 
   @type option ::
     {:encoding, :raw | :base16 | :base32 | :base64} |

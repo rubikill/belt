@@ -4,6 +4,8 @@ defmodule Belt.Application do
   use Application
   import Supervisor.Spec
 
+  @providers Belt.Config.providers()
+
   def start(_type, _args) do
     children = [
       supervisor(Belt.Job.Supervisor, [], []),
@@ -16,7 +18,7 @@ defmodule Belt.Application do
   end
 
   defp get_provider_supervisors() do
-    Application.fetch_env!(:belt, :providers)
+    @providers
     |> Enum.map(fn(provider) ->
       :"#{provider}.Supervisor"
       |> supervisor([], [])
