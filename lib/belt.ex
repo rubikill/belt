@@ -15,6 +15,10 @@ defmodule Belt do
   - `Belt.Provider.S3` supports services with S3-compatible APIs such as
     *Amazon S3*, *EMC Elastic Cloud Storage* or *Minio* though `ExAws`.
 
+  ## Installation & Configuration
+  For more information on how to install and configure Belt, please take a
+  look at the [Getting Started](./getting-started.html) guide.
+
   ## Basic usage
   ```
   #Simple file upload

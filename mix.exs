@@ -21,7 +21,8 @@ defmodule Belt.Mixfile do
      docs: [
       canonical: "http://hexdocs.pm/belt",
       source_url: "https://bitbucket.org/pentacent/belt",
-      homepage_url: "https://bitbucket.org/pentacent/belt"
+      homepage_url: "https://bitbucket.org/pentacent/belt",
+      extras: ["guides/getting-started.md"]
      ]
     ]
   end
