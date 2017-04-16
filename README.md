@@ -12,15 +12,15 @@ Check out [the documentation at hexdocs.pm/belt](https://hexdocs.pm/belt).
 ## Usage
 ```elixir
 #Simple file upload
-config = Belt.Provider.SFTP.new(host: "example.com", directory: "/var/files",
-                                user: "…", password: "…")
+{:ok, config} = Belt.Provider.SFTP.new(host: "example.com", directory: "/var/files",
+                                       user: "…", password: "…")
 Belt.store(config, "/path/to/local/file.ext")
 #=> {:ok, %Belt.FileInfo{…}}
 
 
 #Asynchronous file upload
-config = Belt.Provider.S3.new(access_key_id: "…", secret_access_key: "…",
-                              bucket: "belt-file-bucket")
+{:ok, config} = Belt.Provider.S3.new(access_key_id: "…", secret_access_key: "…",
+                                     bucket: "belt-file-bucket")
 {:ok, job} = Belt.store_async(config, "/path/to/local/file.ext")
 #Do other things while Belt is uploading in the background
 Belt.await(job)
