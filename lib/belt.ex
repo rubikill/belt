@@ -1,8 +1,8 @@
 defmodule Belt do
   use GenStage
 
-  @timeout Belt.Config.timeout()
-  @providers Belt.Config.providers()
+  @timeout Belt.Config.get(:timeout)
+  @providers Belt.Config.get(:providers)
 
   @moduledoc """
   Extensible OTP Application written in Elixir for storing files remotely or

@@ -28,7 +28,7 @@ defmodule Belt.Job do
 
   use GenServer
 
-  @timeout Belt.Config.timeout()
+  @timeout Belt.Config.get(__MODULE__, :timeout)
 
   @typedoc "The Job name"
   @type name :: {:via, module, term}

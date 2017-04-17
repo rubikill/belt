@@ -4,7 +4,7 @@ defmodule Belt.Application do
   use Application
   import Supervisor.Spec
 
-  @providers Belt.Config.providers()
+  @providers Belt.Config.get(:providers)
 
   def start(_type, _args) do
     children = [

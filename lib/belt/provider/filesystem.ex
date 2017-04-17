@@ -8,7 +8,7 @@ defmodule Belt.Provider.Filesystem do
   alias Belt.Provider.Filesystem.Config
   alias Belt.Provider.Helpers
 
-  @max_renames Belt.Config.max_renames()
+  @max_renames Belt.Config.get(__MODULE__, :max_renames)
 
   @typedoc """
   Options for creating an Filesystem provider.
