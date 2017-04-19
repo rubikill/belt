@@ -81,4 +81,27 @@ defmodule Belt.Test.Provider.S3 do
     assert uri.scheme in ["http", "https"]
     assert uri.path != nil
   end
+
+  test "get default config" do
+    key_id = "foo"
+    access_key = "bar"
+    key_id2 = "foo2"
+    access_key2 = "bar2"
+
+    #Defaults from ExAws
+    Application.put_env(:ex_aws, :access_key_id, key_id)
+    Application.put_env(:ex_aws, :secret_access_key, access_key)
+    {:ok, config} = Belt.Provider.S3.default(bucket: "test")
+    assert config.access_key_id == key_id
+    assert config.secret_access_key == access_key
+
+    #Defaults from Belt config
+    Application.put_env(:belt, Belt.Provider.S3, default: [
+      access_key_id: key_id2,
+      secret_access_key: access_key2
+    ])
+    {:ok, config} = Belt.Provider.S3.default(bucket: "test")
+    assert config.access_key_id == key_id2
+    assert config.secret_access_key == access_key2
+  end
 end

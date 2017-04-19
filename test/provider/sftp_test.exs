@@ -95,4 +95,14 @@ defmodule Belt.Test.Provider.SFTP do
 
     assert {:ok, _} = Belt.list_files(config)
   end
+
+  test "get default config" do
+    defaults = [host: "example.org", user: "foo", password: "bar"]
+    Application.put_env(:belt, Belt.Provider.SFTP, default: defaults)
+    {:ok, config} = Belt.Provider.SFTP.default()
+
+    Enum.each(defaults, fn({key, val}) ->
+      assert Map.get(config, key) == val
+    end)
+  end
 end

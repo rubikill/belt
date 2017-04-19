@@ -14,4 +14,14 @@ defmodule Belt.Test.Provider.Filesystem do
     [directory: dir,
      base_url: "http://example.com/files/"]
   end
+
+  test "get default config" do
+    directory = "/foo"
+
+    Application.put_env(:belt, Belt.Provider.Filesystem, default: [
+      directory: directory
+    ])
+    {:ok, config} = Belt.Provider.Filesystem.default()
+    assert config.directory == directory
+  end
 end

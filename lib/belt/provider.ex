@@ -105,7 +105,18 @@ defmodule Belt.Provider do
   """
   @callback new(options :: list) ::
     {:ok, configuration} |
-    {:updated, configuration} |
+    {:error, term}
+
+
+  @doc """
+  Creates a new configuration struct with default credentials.
+  Providers can implement this to pull defaults from the application
+  configuration and/or environment variables at runtime.
+
+  Additionally provided options will override the defaults.
+  """
+  @callback default(options :: list) ::
+    {:ok, configuration} |
     {:error, term}
 
 

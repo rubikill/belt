@@ -72,7 +72,7 @@ defmodule Belt.Provider.S3 do
   """
   @spec new([s3_option]) :: {:ok, Belt.Provider.configuration}
   def new(opts) do
-    config = %Belt.Provider.S3.Config{}
+    %Belt.Provider.S3.Config{}
     |> Map.to_list()
     |> Enum.map(fn {key, default} ->
       case key do
@@ -82,7 +82,7 @@ defmodule Belt.Provider.S3 do
     end)
     |> Enum.into(%{})
     |> determine_host()
-    {:ok, config}
+    |> validate_config()
   end
 
   defp determine_host(config) do
@@ -94,6 +94,72 @@ defmodule Belt.Provider.S3 do
     do: %{config | host: "s3.dualstack.#{region}.amazonaws.com"}
 
   defp do_determine_host(config, _host, _region), do: config
+
+  defp validate_config(config) do
+    {:ok, config}
+  end
+
+
+  @doc """
+  Creates a new S3 provider configuration with default credentials.
+
+  Default credentials can be set in multiple ways:
+  1. In the `Mix.Config` application configuration
+  2. Using the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment
+     variables
+  3. Using AWS CLI config files through `ExAws`
+  4. Configuring `ExAws` with `Mix.Config`
+
+  ## Example application configuration
+  ```
+  #config.exs
+  config :belt, Belt.Provider.S3,
+    default: [access_key_id: "…",
+              secret_access_key: "…",
+              bucket: "…"]
+  """
+  @spec default([s3_option]) ::
+    {:ok, Belt.Provider.configuration} |
+    {:error, term}
+  def default(options \\ []) do
+    get_exaws_defaults()
+    |> Keyword.merge(fetch_defaults())
+    |> Keyword.merge(options)
+    |> ensure_defaults_set()
+  end
+
+  defp get_exaws_defaults() do
+    try do
+      ExAws.Config.new(:s3)
+      |> options_from_exaws()
+    rescue
+      _ -> []
+    end
+  end
+
+  defp options_from_exaws(aws_config) do
+    %Belt.Provider.S3.Config{}
+    |> Map.delete(:"__struct__")
+    |> Map.to_list()
+    |> Enum.map(fn {key, default} ->
+      case key do
+        :https -> {key, (if aws_config.scheme == "http://", do: false, else: true)}
+        _ -> {key, Map.get(aws_config, key, default)}
+      end
+    end)
+  end
+
+  defp fetch_defaults() do
+    with {:ok, app_conf} <- Application.fetch_env(:belt, Belt.Provider.S3),
+         {:ok, defaults} <- Keyword.fetch(app_conf, :default) do
+         defaults
+    else
+      _ -> []
+    end
+  end
+
+  defp ensure_defaults_set([]), do: {:error, :not_set}
+  defp ensure_defaults_set(defaults), do: Belt.Provider.S3.new(defaults)
 
 
   @doc """

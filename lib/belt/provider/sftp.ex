@@ -71,6 +71,36 @@ defmodule Belt.Provider.SFTP do
     {:ok, config}
   end
 
+  @doc """
+  Creates a new SFTP provider configuration with default credentials.
+
+  Any provided `options` override the default settings which are retrieved from
+  the application configuration.
+
+  ## Example
+  ```
+  # config.exs
+  config :belt, Belt.Provider.SFTP,
+  default: [
+    host: "example.org",
+    user: "foo",
+    password: "bar"]
+  ```
+  """
+  @spec default([sftp_option]) ::
+    {:ok, Belt.Provider.configuration} |
+    {:error, term}
+  def default(options \\ []) do
+    with {:ok, app_conf} <- Application.fetch_env(:belt, Belt.Provider.SFTP),
+         {:ok, defaults} <- Keyword.fetch(app_conf, :default) do
+         defaults
+         |> Keyword.merge(options)
+         |> __MODULE__.new()
+    else
+      _ -> {:error, :not_set}
+    end
+  end
+
 
   def store(config, file_source, options) do
     with {:ok, channel, connection_ref} <- connect(config, options),

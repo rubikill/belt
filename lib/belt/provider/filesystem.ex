@@ -33,6 +33,35 @@ defmodule Belt.Provider.Filesystem do
       else: {:error, "no directory specified"}
   end
 
+  @doc """
+  Creates a new Filesystem provider configuration with default credentials.
+
+  Any provided `options` override the default settings which are retrieved from
+  the application configuration.
+
+  ## Example
+  ```
+  # config.exs
+  config :belt, Belt.Provider.Filesystem,
+  default: [
+    directory: "/foo",
+    base_url: "https://example.com/"]
+  ```
+  """
+  @spec default([filesystem_option]) ::
+    {:ok, Belt.Provider.configuration} |
+    {:error, term}
+  def default(options \\ []) do
+    with {:ok, app_conf} <- Application.fetch_env(:belt, Belt.Provider.Filesystem),
+         {:ok, defaults} <- Keyword.fetch(app_conf, :default) do
+         defaults
+         |> Keyword.merge(options)
+         |> __MODULE__.new()
+    else
+      _ -> {:error, :not_set}
+    end
+  end
+
 
   @doc """
   Implementation of the `Belt.Provider.store/3` callback.
