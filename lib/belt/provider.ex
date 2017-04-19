@@ -135,7 +135,7 @@ defmodule Belt.Provider do
   @doc """
   Deletes all file accessible through a configuration.
   """
-  @callback delete_all(configuration, String.t, list) ::
+  @callback delete_all(configuration, list) ::
     :ok |
     {:error, term}
 
