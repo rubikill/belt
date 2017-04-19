@@ -102,6 +102,9 @@ defmodule Belt.Provider.SFTP do
   end
 
 
+  @doc """
+  Implementation of the Provider.store/3 callback.
+  """
   def store(config, file_source, options) do
     with {:ok, channel, connection_ref} <- connect(config, options),
          options = options |> Keyword.put(:channel, channel),
@@ -117,11 +120,15 @@ defmodule Belt.Provider.SFTP do
   end
 
 
+
+  @doc """
+  Implementation of the Provider.delete/3 callback.
+  """
   def delete(config, identifier, options) do
+    path = Path.join(config.directory, identifier)
     with {:ok, channel, connection_ref} <- connect(config, options),
-         options = options |> Keyword.put(:channel, channel),
-         options = options |> Keyword.put(:connection_ref, connection_ref) do
-         result = do_delete(config, identifier, options)
+         {:ok, path} <- Helpers.ensure_included(path, config.directory) do
+         result = delete_scopes_and_files(channel, [], [path])
          disconnect(channel, connection_ref)
          result
     else
@@ -131,6 +138,47 @@ defmodule Belt.Provider.SFTP do
   end
 
 
+  @doc """
+  Implementation of the Provider.delete_all/2 callback.
+  """
+  def delete_all(config, options) do
+    with {:ok, channel, connection_ref} <- connect(config, options) do
+      {scopes, files} = traverse(channel, config.directory)
+      result = delete_scopes_and_files(channel, scopes, files)
+      disconnect(channel, connection_ref)
+      result
+    end
+  end
+
+
+
+  @doc """
+  Implementation of the Provider.delete_scope/3 callback.
+  """
+  def delete_scope(config, scope, options) do
+    with {:ok, channel, connection_ref} <- connect(config, options) do
+      reply = delete_scopes_and_files_scope(config, channel, scope)
+      disconnect(channel, connection_ref)
+      reply
+    end
+  end
+
+  defp delete_scopes_and_files_scope(config, channel, scope) do
+    path = Path.join(config.directory, scope)
+    with {:ok, path} <- Helpers.ensure_included(path, config.directory) do
+      {scopes, files} = traverse(channel, path)
+      delete_scopes_and_files(channel, scopes, files)
+      :ssh_sftp.del_dir(channel, path)
+      :ok
+    else
+      {:error, _} -> {:error, :invalid_scope}
+    end
+  end
+
+
+  @doc """
+  Implementation of the Provider.get_info/3 callback.
+  """
   def get_info(config, identifier, options) do
     with {:ok, channel, connection_ref} <- connect(config, options),
          options = options |> Keyword.put(:channel, channel),
@@ -160,17 +208,22 @@ defmodule Belt.Provider.SFTP do
   """
   def list_files(config, options) do
     with {:ok, channel, connection_ref} <- connect(config, options) do
-      directory  = config.directory
-      files = do_list_files([directory], [], channel)
-        |> Enum.map(&Path.relative_to(&1, directory))
+      files = traverse(channel, config.directory)
+        |> elem(1)
+        |> Enum.map(&Path.relative_to(&1, config.directory))
       disconnect(channel, connection_ref)
       {:ok, files}
     end
   end
 
-  def do_list_files([], files, _channel), do: files
 
-  def do_list_files([dir | t], files, channel) do
+  defp traverse(channel, directory),
+    do: do_traverse(channel, [directory], [], [])
+
+  defp do_traverse(channel, dirs, scopes, files)
+  defp do_traverse(_channel, [], scopes, files), do: {scopes, files}
+
+  defp do_traverse(channel, [dir | t], scopes, files) do
     with {:ok, dir_files} <- :ssh_sftp.list_dir(channel, dir  |> to_charlist()) do
       {new_dirs, new_files} = dir_files
         |> Enum.map(fn(name) ->
@@ -186,7 +239,7 @@ defmodule Belt.Provider.SFTP do
             _           -> {dirs, files}
           end
         end)
-      do_list_files(new_dirs ++ t, new_files ++ files, channel)
+      do_traverse(channel, new_dirs ++ t, new_dirs ++ scopes, new_files ++ files)
     end
   end
 
@@ -221,6 +274,16 @@ defmodule Belt.Provider.SFTP do
     :ok = :ssh.close(connection_ref)
   end
 
+  defp delete_scopes_and_files(channel, scopes, files) do
+    Enum.map(files, fn(file) ->
+      :ssh_sftp.delete(channel, file |> to_charlist())
+    end)
+    Enum.map(scopes, fn(scope) ->
+      :ssh_sftp.del_dir(channel, scope |> to_charlist())
+    end)
+    :ok
+  end
+
   defp mkdir_p!(channel, name) do
     [base | segments] = Path.split(name)
     do_mkdir_p!(channel, base, segments)
@@ -253,12 +316,6 @@ defmodule Belt.Provider.SFTP do
         any ->
           {:error, any}
       end
-  end
-
-  def do_delete(config, identifier, options) do
-    channel = Keyword.get(options, :channel)
-    path = Path.join(config.directory, identifier)
-    :ssh_sftp.delete(channel, path)
   end
 
   defp do_get_info(config, identifier, options) do

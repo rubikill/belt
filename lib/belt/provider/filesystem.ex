@@ -121,6 +121,37 @@ defmodule Belt.Provider.Filesystem do
     File.rm!(path)
   end
 
+  @doc """
+  Implementation of the `Belt.Provider.delete_scope/3` callback.
+  """
+  def delete_scope(config, scope, _options) do
+    dir = config.directory
+    path = Path.join(config.directory, scope)
+    with {:ok, path} <- Helpers.ensure_included(path, dir) do
+      case File.rm_rf(path) do
+        {:ok, _} -> :ok
+        other -> other
+      end
+    else
+      {:error, _} -> {:error, :invalid_scope}
+    end
+  end
+
+  @doc """
+  Implementation of the `Belt.Provider.delete_all/2` callback.
+  """
+  def delete_all(config, _options) do
+    File.ls!(config.directory)
+    |> Enum.map(&Path.join(config.directory, &1))
+    |> Enum.map(&File.rm_rf/1)
+    |> Enum.reduce(:ok, fn(result, _) ->
+      case result do
+        {:ok, _} -> :ok
+        other -> other
+      end
+    end)
+  end
+
 
   @doc """
   Implementation of the `Belt.Provider.get_info/3` callback.

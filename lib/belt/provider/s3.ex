@@ -238,6 +238,41 @@ defmodule Belt.Provider.S3 do
 
 
   @doc """
+  Implementation of the Provider.delete_all/2 callback.
+  """
+  def delete_all(config, options) do
+    aws_config = get_aws_config(config, options)
+    operation = ExAws.S3.list_objects(config.bucket)
+    delete_files(config, aws_config, operation)
+  end
+
+
+  @doc """
+  Implementation of the Provider.delete_scope/3 callback.
+  """
+  def delete_scope(config, scope, options) do
+    with {:ok, scope} <- Helpers.ensure_included(Path.join("/", scope), "/") do
+      scope = Path.relative_to(scope, "/")
+      aws_config = get_aws_config(config, options)
+      operation = ExAws.S3.list_objects(config.bucket, prefix: scope)
+      delete_files(config, aws_config, operation)
+    else
+      _ -> {:error, :invalid_scope}
+    end
+  end
+
+  defp delete_files(config, aws_config, operation) do
+    ExAws.stream!(operation, aws_config)
+    |> Stream.map(&(&1[:key]))
+    |> Stream.chunk(1000, 1000, [])
+    |> Enum.each(fn(files) ->
+      ExAws.S3.delete_multiple_objects(config.bucket, files)
+      |> ExAws.request!(aws_config)
+    end)
+  end
+
+
+  @doc """
   Implementation of the `Belt.Provider.get_info/3` callback.
   """
   def get_info(config, identifier, options) do
