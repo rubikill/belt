@@ -158,10 +158,42 @@ defmodule Belt.Test.Provider do
           %{provider: provider, _files: [file | _]} = context do
         {:ok, config} = provider.new(config_opts(context))
         key = "list-files-scoped-test.tmp"
-        {:ok, %{identifier: identifier}} = Belt.store(config, file, key: key, scope: "list-scope")
+        {:ok, %{identifier: identifier}} =
+          Belt.store(config, file, key: key, scope: "list-scope")
 
         assert {:ok, files_list} = Belt.list_files(config)
         assert identifier in files_list
+      end
+
+      test "delete scope",
+          %{provider: provider, _files: [file | _]} = context do
+        {:ok, config} = provider.new(config_opts(context))
+        key = "list-files-scoped-test.tmp"
+        {:ok, %{identifier: identifier}} =
+          Belt.store(config, file, key: key, scope: "delete-scope")
+
+        assert :ok = Belt.delete_scope(config, "delete-scope")
+
+        {:ok, files_list} = Belt.list_files(config)
+        refute identifier in files_list
+      end
+
+      test "don't allow accidentially deleting everything",
+          %{provider: provider} = context do
+        {:ok, config} = provider.new(config_opts(context))
+        assert {:error, :invalid_scope} = Belt.delete_scope(config, "")
+        assert {:error, :invalid_scope} = Belt.delete_scope(config, "..")
+      end
+
+      test "delete everything",
+          %{provider: provider, _files: [file | _]} = context do
+        {:ok, config} = provider.new(config_opts(context))
+        {:ok, _} = Belt.store(config, file, scope: "delete-all")
+
+        assert :ok = Belt.delete_all(config)
+
+        {:ok, files_list} = Belt.list_files(config)
+        assert files_list == []
       end
     end
   end

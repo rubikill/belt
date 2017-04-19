@@ -209,6 +209,42 @@ defmodule Belt do
 
 
   @doc """
+  Deletes all files stored at the location specified by `config`.
+
+  **Use with caution:** this can also delete files which were not stored with Belt.
+
+  ## Options
+  The following options are supported by all providers. Some providers might
+  offer additional options.
+  - `:timeout` - Timeout for this call in milliseconds
+  """
+  def delete_all(config, options \\ []) do
+    {:ok, job} = GenServer.call(__MODULE__, {:delete_all, [config, options]})
+    await(job, options)
+  end
+
+
+  @doc """
+  Deletes all files stored within a given `scope` at a location specified with
+  `config`.
+
+  **Use with caution:** this can also delete files which were not stored with Belt.
+
+  ## Options
+  The following options are supported by all providers. Some providers might
+  offer additional options.
+  - `:timeout` - Timeout for this call in milliseconds
+  """
+  def delete_scope(config, scope, options \\ [])
+  def delete_scope(_, "", _), do: {:error, :invalid_scope}
+
+  def delete_scope(config, scope, options) do
+    {:ok, job} = GenServer.call(__MODULE__, {:delete_scope, [config, scope, options]})
+    await(job, options)
+  end
+
+
+  @doc """
   Convenience function for awaiting the reply of a running `Belt.Job`.
 
   Terminates the Job after it has been completed or the timeout has expired.
@@ -255,7 +291,7 @@ defmodule Belt do
 
   @doc false
   def handle_call({type, params}, _from, state)
-  when type in [:store, :delete, :delete, :get_info, :get_url, :list_files] do
+  when type in [:store, :delete, :delete_scope, :delete_all, :get_info, :get_url, :list_files] do
     job_name = List.last(params)
       |> Keyword.get(:name, :auto)
     reply = {:ok, job} = Belt.Job.new({type, params}, job_name)

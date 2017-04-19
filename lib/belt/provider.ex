@@ -132,6 +132,20 @@ defmodule Belt.Provider do
     :ok |
     {:error, term}
 
+  @doc """
+  Deletes all file accessible through a configuration.
+  """
+  @callback delete_all(configuration, String.t, list) ::
+    :ok |
+    {:error, term}
+
+  @doc """
+  Deletes all files within a scope of a configuration.
+  """
+  @callback delete_scope(configuration, String.t, list) ::
+    :ok |
+    {:error, term}
+
   @callback get_info(configuration, identifier, [info_option]) ::
     {:ok, Belt.FileInfo.t}
 
