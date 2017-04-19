@@ -113,10 +113,9 @@ defmodule Belt.Provider.Helpers do
   def ensure_included(path, directory) do
     path = expand_path(path)
     directory = expand_path(directory)
-
     if Path.relative_to(path, directory) != path,
       do: {:ok, path},
-      else: {:error, "#{inspect path} is not inclued in #{inspect directory}"}
+      else: {:error, "#{inspect path} is not included in #{inspect directory}"}
   end
 
   @spec expand_path(Path.t) :: Path.t
@@ -127,7 +126,13 @@ defmodule Belt.Provider.Helpers do
       case segment do
         "." when acc == [] -> ["."]
         "." -> acc
-        ".." -> [_ | t] = acc; t
+        ".." ->
+          case acc do
+            [] -> [".."]
+            [_ | []] -> [".."]
+            [".." | t] -> [".." | acc]
+            [_ | t] -> t
+          end
         other -> [other | acc]
       end
     end)
