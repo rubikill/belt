@@ -44,6 +44,8 @@ defmodule Belt.Mixfile do
      {:ex_aws, "~> 1.0", optional: true},
      {:sweet_xml, "~> 0.6", optional: true},
      {:hackney, "~> 1.6", optional: true}
+     {:hackney, "~> 1.6", optional: true},
+     {:ecto, "~> 2.1", optional: true}
    ]
   end
 

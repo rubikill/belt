@@ -41,3 +41,20 @@ def application do
   [extra_applications: [:belt, :hackney, .sweet_xml]]
 end
 ```
+
+## Using Belt with Ecto
+You can use `Belt.Ecto.Config` for easily persisting your provider configuration in a database:
+```
+#in migrations
+
+create table(:belt_providers) do
+  add :config, :map #Belt.Ecto.Config uses Ecto primitive :map
+end
+```
+```
+#in schemas
+
+schema "belt_providers" do
+  field :config, Belt.Ecto.Type
+end
+```
