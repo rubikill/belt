@@ -6,7 +6,7 @@ the Amazon S3 API.
 
 
 ## Documentation
-Check out [the documentation at hexdocs.pm/belt](https://hexdocs.pm/belt).
+Check out [the documentation at hexdocs.pm/belt](https://hexdocs.pm/belt) and our [Getting Started guide](https://hexdocs.pm/belt/getting-started.html).
 
 
 ## Usage
