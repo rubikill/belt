@@ -122,12 +122,14 @@ defmodule Belt.Provider do
 
   @doc """
   Stores a file using the provided configuration.
-
   """
   @callback store(configuration, file_source :: file_source, [store_option]) ::
     {:ok, Belt.FileInfo.t} |
     {:error, term}
 
+  @doc """
+  Deletes a file using the provided configuration and identifier.
+  """
   @callback delete(configuration, identifier, list) ::
     :ok |
     {:error, term}
@@ -146,12 +148,22 @@ defmodule Belt.Provider do
     :ok |
     {:error, term}
 
+  @doc """
+  Retrieves `%Belt.FileInfo{}` struct for given file.
+  """
   @callback get_info(configuration, identifier, [info_option]) ::
     {:ok, Belt.FileInfo.t}
 
+
+  @doc """
+  Retrieves url for given file.
+  """
   @callback get_url(configuration, identifier, [url_option]) ::
     {:ok, Belt.FileInfo.t} | :unavailable | {:error, term}
 
+  @doc """
+  Lists all files for a given provider.
+  """
   @callback list_files(configuration, [list_files_option]) ::
     {:ok, [identifier]} | {:error, term}
 
