@@ -63,7 +63,7 @@ defmodule Belt.Provider.SFTP.ClientKeyBehaviour do
 
   Otherwise generates one-time private key.
   """
-  def user_key(:"ssh-rsa" = algorithm, connect_options) do
+  def user_key(:"ssh-rsa", connect_options) do
     key_cb_private = Keyword.get(connect_options, :key_cb_private, [])
     key = case Keyword.get(key_cb_private, :user_key) do
       nil -> genrsa()

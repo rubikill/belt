@@ -130,7 +130,7 @@ defmodule Belt.Provider.Helpers do
           case acc do
             [] -> [".."]
             [_ | []] -> [".."]
-            [".." | t] -> [".." | acc]
+            [".." | _] -> [".." | acc]
             [_ | t] -> t
           end
         other -> [other | acc]
