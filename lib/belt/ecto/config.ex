@@ -17,7 +17,7 @@ defmodule Belt.Ecto.Config do
   #in schemas
 
   schema "belt_providers" do
-    field :config, Belt.Ecto.Type
+    field :config, Belt.Ecto.Config
   end
   ```
   """
