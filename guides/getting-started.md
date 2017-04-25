@@ -16,6 +16,8 @@ def application do
 end
 ```
 ## Providers
+
+### Supported providers
 Belt comes with backends for the local filesystem (`Belt.Provider.Filesystem`), SFTP (`Belt.Provider.SFTP`) and S3 (`Belt.Provider.S3`).
 
 By default, Belt will automatically determine which providers are available according to your installed dependencies. You can also manually configure the Providers that should be started alongside Belt (typically in your `config/config.exs` file:
@@ -24,10 +26,13 @@ config :belt,
   providers: [Belt.Provider.Filesystem, Belt.Provider.SFTP, Belt.Provider.S3]
 ```
 
-### Belt.Provider.SFTP
+#### Belt.Provider.Filesystem
+`Belt.Provider.Filesystem` has no special dependencies.
+
+#### Belt.Provider.SFTP
 `Belt.Provider.SFTP` requires `:ssh_sftp` which is already included in many OTP distributions.
 
-### Belt.Provider.S3
+#### Belt.Provider.S3
 If you want to use `Belt.Provider.S3`, you need to make sure to include [ExAws](https://github.com/CargoSense/ex_aws) as well its dependencies [Hackney](https://hex.pm/packages/hackney) and [sweet_xml](https://hex.pm/packages/sweet_xml) (which are required by ExAws) to your dependencies and applications list:
 ```elixir
 def deps do
