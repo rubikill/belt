@@ -8,7 +8,7 @@ defmodule Belt.Mixfile do
      elixirc_paths: elixirc_paths(Mix.env),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     test_coverage: [tool: Coverex.Task],
+     test_coverage: [tool: ExCoveralls],
      deps: deps(),
      dialyzer: [plt_add_apps: [:ssh, :observer]],
 
@@ -40,10 +40,10 @@ defmodule Belt.Mixfile do
     [{:gen_stage, "~> 0.11.0"},
      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
      {:coverex, "~> 1.4.10", only: :test},
+     {:excoveralls, "~> 0.6", only: :test},
      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
      {:ex_aws, "~> 1.0", optional: true},
      {:sweet_xml, "~> 0.6", optional: true},
-     {:hackney, "~> 1.6", optional: true}
      {:hackney, "~> 1.6", optional: true},
      {:ecto, "~> 2.1", optional: true}
    ]
