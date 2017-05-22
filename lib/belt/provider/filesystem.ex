@@ -79,7 +79,6 @@ defmodule Belt.Provider.Filesystem do
                                            overwrite: overwrite,
                                            max_renames: max_renames),
          :ok <- File.cp(file_source, path) do
-      :timer.sleep(500)
       get_info(config, Path.relative_to(path, directory), options)
     end
   end
@@ -118,7 +117,11 @@ defmodule Belt.Provider.Filesystem do
   """
   def delete(config, identifier, _options) do
     {:ok, path} = build_target_path(config.directory, "", identifier)
-    File.rm!(path)
+    case File.rm(path) do
+      :ok -> :ok
+      {:error, :enoent} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
