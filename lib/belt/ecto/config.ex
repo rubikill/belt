@@ -57,6 +57,7 @@ if Code.ensure_loaded? Ecto.Type do
         stringify(pair)
       end)
       |> Enum.into(%{})
+      |> fn(config) -> {:ok, config} end.()
     end
 
     def dump(_), do: :error
