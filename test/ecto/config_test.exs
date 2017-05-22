@@ -32,7 +32,7 @@ defmodule Belt.Test.Ecto.Config do
   test "dump" do
     config = get_config!()
     serialized_config = get_serialized_config!()
-    assert Config.dump(config) == serialized_config
+    assert Config.dump(config) == {:ok, serialized_config}
     assert Config.dump(serialized_config) == :error
   end
 
