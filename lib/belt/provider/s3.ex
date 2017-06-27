@@ -284,7 +284,12 @@ if Code.ensure_loaded? ExAws.S3 do
     defp do_get_info(config, aws_config, identifier, options) do
       request = ExAws.S3.head_object(config.bucket, identifier)
       with {:ok, %{headers: headers}} <- ExAws.request(request, aws_config) do
-        headers = parse_file_info_header(headers, [])
+        headers =
+          headers
+          |> Enum.map(fn({key, value}) ->
+            {String.downcase(key), value}
+          end)
+        |> Enum.map(&parse_file_info_header/1)
 
         hashes = get_hashes(headers, options)
 
@@ -298,12 +303,11 @@ if Code.ensure_loaded? ExAws.S3 do
       end
     end
 
-    defp parse_file_info_header([{"Content-Length", size} | t], acc) do
-      acc = [{:size, String.to_integer(size)} | acc]
-      parse_file_info_header(t, acc)
+    defp parse_file_info_header({"content-length", size}) do
+      {:size, String.to_integer(size)}
     end
 
-    defp parse_file_info_header([{"Last-Modified", date} | t], acc) do
+    defp parse_file_info_header({"last-modified", date}) do
       [_, dd, mm, yyyy, time, _tz] = String.split(date, " ")
       dd = dd |> String.to_integer()
       yyyy = yyyy |> String.to_integer()
@@ -312,32 +316,20 @@ if Code.ensure_loaded? ExAws.S3 do
         |> Enum.find_index(fn(str) -> str == mm end)
       [hh, mins, ss] = String.split(time, ":")
         |> Enum.map(fn(n) -> String.to_integer(n) end)
-
-      acc = [{:modified, {{yyyy, mm, dd}, {hh, mins, ss}}} | acc]
-      parse_file_info_header(t, acc)
+      {:modified, {{yyyy, mm, dd}, {hh, mins, ss}}}
     end
 
-    defp parse_file_info_header([{"x-amz-meta-belt-hash-" <> hash_name, hash} | t], acc) do
-      pair = {hash_name, hash}
-      acc = Keyword.update(acc, :hashes, [pair], fn(hashes) ->
-        [pair | hashes]
-      end)
-      parse_file_info_header(t, acc)
-    end
-
-    defp parse_file_info_header([_ | t], acc), do: parse_file_info_header(t, acc)
-    defp parse_file_info_header([], acc), do: acc
+    defp parse_file_info_header(header), do: header
 
     defp get_hashes(headers, options) do
-      header_hashes = Keyword.get(headers, :hashes, [])
       Keyword.get(options, :hashes, [])
-      |> Enum.map(&extract_header_hash(&1, header_hashes))
+      |> Enum.map(&extract_header_hash(&1, headers))
     end
 
-    defp extract_header_hash(hash, header_hashes) do
-      hash = hash |> to_string()
-      Enum.find_value(header_hashes, :unavailable, fn(pair) ->
-        case pair do
+    defp extract_header_hash(hash, headers) do
+      hash = "x-amz-meta-belt-hash-" <> to_string(hash)
+      Enum.find_value(headers, :unavailable, fn(header_pair) ->
+        case header_pair do
           {^hash, value} -> value
           _other -> nil
         end
