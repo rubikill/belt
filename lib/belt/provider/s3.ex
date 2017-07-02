@@ -366,7 +366,11 @@ if Code.ensure_loaded? ExAws.S3 do
           schema = if config.https == false, do: "http://", else: "https://"
           schema <> config.host <> ":" <> "#{config.port}" <> "/"
       end
-      url = URI.merge(base_url, identifier) |> URI.to_string()
+      url =
+        base_url
+        |> URI.merge(config.bucket <> "/")
+        |> URI.merge(identifier)
+        |> URI.to_string()
       {:ok, url}
     end
 
