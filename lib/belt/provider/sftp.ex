@@ -369,15 +369,24 @@ if Code.ensure_loaded? :ssh_sftp do
 
     defp copy_file(channel, source_path, target_path) do
       target_path = target_path |> String.to_charlist()
-      {:ok, handle} = :ssh_sftp.open(channel, target_path, [:write])
+      file_opts = [:write, :binary]
+      with true,
+        {:ok, {_window, packet_size}} <- :ssh_sftp.send_window(channel),
+        {:ok, handle} <- :ssh_sftp.open(channel, target_path, file_opts),
+        packet_size = Enum.min([@stream_size, packet_size]),
+        :ok <- do_copy_file(channel, handle, packet_size, source_path) do
+        :ssh_sftp.close(channel, handle)
+      end
+    end
 
-      File.stream!(source_path, [:read], @stream_size)
-      |> Stream.map(fn(data) ->
-        :ssh_sftp.write(channel, handle, data)
+    defp do_copy_file(channel, handle, packet_size, source_path) do
+      File.stream!(source_path, [:read], packet_size)
+      |> Enum.reduce_while(:ok, fn(data, acc) ->
+        case acc do
+          :ok -> {:cont, :ssh_sftp.write(channel, handle, data)}
+          other -> {:halt, other}
+        end
       end)
-      |> Stream.run()
-
-      :ssh_sftp.close(channel, handle)
     end
 
 
