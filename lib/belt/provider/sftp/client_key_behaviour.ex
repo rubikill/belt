@@ -12,7 +12,7 @@ if Code.ensure_loaded? :ssh_sftp do
     Dynamically adding host keys is not supported
     """
     def add_host_key(_host_names, _key, _connect_options) do
-      {:error, :not_implemented}
+      :ok
     end
 
 
