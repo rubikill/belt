@@ -227,6 +227,12 @@ if Code.ensure_loaded? :ssh_sftp do
     defp do_traverse(channel, [dir | t], scopes, files) do
       with {:ok, dir_files} <- :ssh_sftp.list_dir(channel, dir  |> to_charlist()) do
         {new_dirs, new_files} = dir_files
+          |> Enum.filter(fn(name) ->
+            case name do
+              name when name in ['.', '..', ".", "..",] -> false
+              _ -> true
+            end
+          end)
           |> Enum.map(fn(name) ->
             path = Path.join(dir, name)
             {:ok, stat} = :ssh_sftp.read_file_info(channel, path |> to_charlist())
