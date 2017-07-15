@@ -330,7 +330,7 @@ if Code.ensure_loaded? :ssh_sftp do
       path = Path.join(config.directory, identifier)
 
       with {:ok, stat} <- :ssh_sftp.read_file_info(channel, path) do
-        hashes = get_remote_hashes(channel, path, options)
+        hashes = get_remote_hashes(channel, path, Keyword.get(options, :hashes, []))
         url = case get_url(config, identifier, options) do
           {:ok, url} -> url
           other -> other
@@ -348,23 +348,26 @@ if Code.ensure_loaded? :ssh_sftp do
       end
     end
 
-    def get_remote_hashes(channel, path, options) do
-      hashes = Keyword.get(options, :hashes, [])
-      stream = Stream.resource(
-        fn ->
-          {:ok, handle} = :ssh_sftp.open(channel, path, [:read])
-          handle
-        end,
-        fn(handle) ->
-          case :ssh_sftp.read(channel, handle, @stream_size) do
-            :eof -> {:halt, handle}
-            {:ok, data} -> {[data], handle}
-            {:error, _reason} -> {:halt, handle}
-          end
-        end,
-        fn(handle) -> :ssh_sftp.close(channel, handle) end
-      )
-      Belt.Hasher.hash_stream(stream, hashes)
+    def get_remote_hashes(channel, path, []), do: []
+    def get_remote_hashes(channel, path, hashes) do
+      with {:ok, {_window, packet_size}} <- :ssh_sftp.recv_window(channel) do
+        packet_size = Enum.min([@stream_size, packet_size])
+        stream = Stream.resource(
+          fn ->
+            {:ok, handle} = :ssh_sftp.open(channel, path, [:read])
+            handle
+          end,
+          fn(handle) ->
+            case :ssh_sftp.read(channel, handle, packet_size) do
+              :eof -> {:halt, handle}
+              {:ok, data} -> {[data], handle}
+              {:error, _reason} -> {:halt, handle}
+            end
+          end,
+          fn(handle) -> :ssh_sftp.close(channel, handle) end
+        )
+        Belt.Hasher.hash_stream(stream, hashes)
+      end
     end
 
     defp copy_file(channel, source_path, target_path) do
