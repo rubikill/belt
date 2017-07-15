@@ -110,10 +110,12 @@ if Code.ensure_loaded? :ssh_sftp do
       with {:ok, channel, connection_ref} <- connect(config, options),
           options = options |> Keyword.put(:channel, channel),
           options = options |> Keyword.put(:connection_ref, connection_ref),
-          {:ok, identifier} <- do_store(config, file_source, options) do
-          info = do_get_info(config, identifier, options)
+          {:ok, identifier} <- do_store(config, file_source, options),
+          {requested_hashes, options} <- Keyword.pop(options, :hashes, []),
+          {:ok, info} <- do_get_info(config, identifier, options) do
           disconnect(channel, connection_ref)
-          info
+          hashes = Belt.Hasher.hash_file(file_source, requested_hashes)
+          {:ok, info |> Map.put(:hashes, hashes)}
       else
         {:error, reason} -> {:error, reason}
         other -> {:error, other}
