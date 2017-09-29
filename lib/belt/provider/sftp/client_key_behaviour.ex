@@ -21,7 +21,7 @@ if Code.ensure_loaded? :ssh_sftp do
 
     Otherwise accepts all keys
     """
-    def is_host_key(key, host, :"ssh-rsa", connect_options) do
+    def is_host_key(key, host, algorithm, connect_options) do
       key_cb_private = Keyword.get(connect_options, :key_cb_private, [])
       case Keyword.get(key_cb_private, :verify_host_key) do
         falsy when falsy in [nil, false] -> true
@@ -31,8 +31,6 @@ if Code.ensure_loaded? :ssh_sftp do
           keys_match?(key, host, expected_key, host)
       end
     end
-
-    def is_host_key(_, _, _, _), do: {:error, "algorithm not supported"}
 
     defp keys_match?(key, host, {:RSAPublicKey, _, _} = expected_key, host) do
       key == expected_key
@@ -74,7 +72,9 @@ if Code.ensure_loaded? :ssh_sftp do
       {:ok, key}
     end
 
-    def user_key(_, _), do: {:error, "algorithm not supported"}
+    def user_key(algorithm, _) do
+      {:error, "algorithm #{inspect algorithm} not supported"}
+    end
 
 
     @doc """
