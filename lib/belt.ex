@@ -266,6 +266,22 @@ defmodule Belt do
   end
 
 
+  @doc """
+  Tests if the connection to a Provider can be successfully established.
+
+  ## Options
+  - `:timeout` - `integer` - Maximum time (in milliseconds) to wait for the
+    job to finish
+  """
+  @spec test_connection(Belt.Provider.configuration, [Belt.request_option]) ::
+  :ok |
+  {:error, term}
+  def test_connection(config, options \\ []) do
+    {:ok, job} = GenServer.call(__MODULE__, {:test_connection, [config, options]})
+    await(job, options)
+  end
+
+
   @doc false
   def start_link do
     GenStage.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -289,9 +305,11 @@ defmodule Belt do
   end
 
 
+  @job_types [:store, :delete, :delete_scope, :delete_all, :get_info, :get_url,
+              :list_files, :test_connection]
   @doc false
   def handle_call({type, params}, _from, state)
-  when type in [:store, :delete, :delete_scope, :delete_all, :get_info, :get_url, :list_files] do
+  when type in @job_types do
     job_name = List.last(params)
       |> Keyword.get(:name, :auto)
     reply = {:ok, job} = Belt.Job.new({type, params}, job_name)

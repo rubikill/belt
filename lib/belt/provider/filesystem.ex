@@ -235,4 +235,18 @@ defmodule Belt.Provider.Filesystem do
 
     do_list_files(new_dirs ++ t, new_files ++ files, options)
   end
+
+
+  @doc """
+  Implementation of the Provider.test_connection/2 callback.
+  """
+  def test_connection(config, options) do
+    directory = config.directory
+    with {:ok, %{access: :read_write}} <- File.stat(directory) do
+      :ok
+    else
+      {:ok, _} -> {:error, :eperm}
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end

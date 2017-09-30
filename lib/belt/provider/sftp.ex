@@ -220,6 +220,17 @@ if Code.ensure_loaded? :ssh_sftp do
     end
 
 
+    @doc """
+    Implementation of the Provider.test_connection/2 callback.
+    """
+    def test_connection(config, options) do
+      with {:ok, channel, connection_ref} <- connect(config, options) do
+        disconnect(channel, connection_ref)
+        :ok
+      end
+    end
+
+
     defp traverse(channel, directory),
       do: do_traverse(channel, [directory], [], [])
 

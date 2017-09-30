@@ -394,6 +394,21 @@ if Code.ensure_loaded? ExAws.S3 do
     defp do_list_files(_), do: {:error, "could not retrieve file list"}
 
 
+    @doc """
+    Implementation of the Provider.test_connection/2 callback.
+    """
+    def test_connection(config, options) do
+      aws_config = get_aws_config(config, options)
+      request = ExAws.S3.head_bucket(config.bucket)
+      with {:ok, _} <- ExAws.request(request, aws_config) do
+        :ok
+      else
+        {:error, {:http_error, code, _}} -> {:error, code}
+        _ -> {:error, :eperm}
+      end
+    end
+
+
     #Returns configuration for ExAws
     defp get_aws_config(config, _options) do
       options = [host: config.host,

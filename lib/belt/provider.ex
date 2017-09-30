@@ -167,6 +167,12 @@ defmodule Belt.Provider do
   @callback list_files(configuration, [list_files_option]) ::
     {:ok, [identifier]} | {:error, term}
 
+  @doc """
+  Tests if a connection can be established with the given provider.
+  """
+  @callback test_connection(configuration, [Belt.request_option]) ::
+    :ok | {:error, term}
+
 
   defmacro __using__(_opts) do
     quote do

@@ -195,6 +195,12 @@ defmodule Belt.Test.Provider do
         {:ok, files_list} = Belt.list_files(config)
         assert files_list == []
       end
+
+      test "test connection",
+          %{provider: provider} = context do
+        {:ok, config} = provider.new(config_opts(context))
+        assert :ok = Belt.test_connection(config)
+      end
     end
   end
 end
