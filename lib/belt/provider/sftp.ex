@@ -386,10 +386,21 @@ if Code.ensure_loaded? :ssh_sftp do
 
     defp do_copy_file(channel, handle, packet_size, source_path) do
       File.stream!(source_path, [:read], packet_size)
-      |> Enum.reduce_while(:ok, fn(data, acc) ->
-        case acc do
-          :ok -> {:cont, :ssh_sftp.write(channel, handle, data)}
-          other -> {:halt, other}
+      |> Enum.reduce_while([], fn(data, acc) ->
+          awrite_result = :ssh_sftp.awrite(channel, handle, data)
+          case awrite_result do
+            {:async, _n} -> {:cont, [awrite_result | acc]}
+            other -> {:halt, other}
+          end
+        end)
+      |> handle_async_replies()
+    end
+
+    defp handle_async_replies(reply_ids) when is_list(reply_ids) do
+      Enum.reduce_while(reply_ids, :ok, fn({:async, n}, _acc) ->
+        receive do
+          {:async_reply, ^n, :ok} -> {:cont, :ok}
+          {:async_reply, ^n, other} -> {:halt, other}
         end
       end)
     end
