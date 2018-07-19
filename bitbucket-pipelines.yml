@@ -31,7 +31,7 @@ pipelines:
             image: elixir:1.4-slim
             name: Elixir 1.4
             script:
-            - apt update && apt install openssl openssh-client
+            - apt-get update && apt-get install -y openssl openssh-client
             - mix local.hex --force
             - mix local.rebar --force
             - mix deps.get
