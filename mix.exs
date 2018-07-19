@@ -42,9 +42,9 @@ defmodule Belt.Mixfile do
      {:coverex, "~> 1.4.10", only: :test},
      {:excoveralls, "~> 0.6", only: :test},
      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-     {:ex_aws, "~> 1.0", optional: true},
+     {:ex_aws, "~> 1.1.5", optional: true},
      {:sweet_xml, "~> 0.6", optional: true},
-     {:hackney, "~> 1.6", optional: true},
+     {:hackney, "~> 1.9", optional: true},
      {:ecto, "~> 2.1", optional: true}
    ]
   end
