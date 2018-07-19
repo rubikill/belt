@@ -361,7 +361,7 @@ if Code.ensure_loaded? :ssh_sftp do
       end
     end
 
-    def get_remote_hashes(channel, path, []), do: []
+    def get_remote_hashes(_channel, _path, []), do: []
     def get_remote_hashes(channel, path, hashes) do
       with {:ok, {_window, packet_size}} <- :ssh_sftp.recv_window(channel) do
         packet_size = Enum.min([@stream_size, packet_size])

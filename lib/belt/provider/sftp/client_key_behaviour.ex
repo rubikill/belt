@@ -21,7 +21,7 @@ if Code.ensure_loaded? :ssh_sftp do
 
     Otherwise accepts all keys
     """
-    def is_host_key(key, host, algorithm, connect_options) do
+    def is_host_key(key, host, _algorithm, connect_options) do
       key_cb_private = Keyword.get(connect_options, :key_cb_private, [])
       case Keyword.get(key_cb_private, :verify_host_key) do
         falsy when falsy in [nil, false] -> true
