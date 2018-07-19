@@ -123,6 +123,26 @@ if Code.ensure_loaded? :ssh_sftp do
     end
 
 
+    @doc """
+    Implementation of the Provider.store_data/3 callback.
+    """
+    def store_data(config, iodata, options) do
+      with {:ok, channel, connection_ref} <- connect(config, options),
+          options = options |> Keyword.put(:channel, channel),
+          options = options |> Keyword.put(:connection_ref, connection_ref),
+          {:ok, identifier} <- do_store_data(config, iodata, options),
+          {requested_hashes, options} <- Keyword.pop(options, :hashes, []),
+          {:ok, info} <- do_get_info(config, identifier, options) do
+          disconnect(channel, connection_ref)
+          hashes = Belt.Hasher.hash(iodata, requested_hashes)
+          {:ok, info |> Map.put(:hashes, hashes)}
+      else
+        {:error, reason} -> {:error, reason}
+        other -> {:error, other}
+      end
+    end
+
+
 
     @doc """
     Implementation of the Provider.delete/3 callback.
@@ -338,6 +358,21 @@ if Code.ensure_loaded? :ssh_sftp do
         end
     end
 
+    defp do_store_data(config, iodata, options) do
+      channel = Keyword.get(options, :channel)
+
+      with {:ok, path} <- build_target_path(config, options),
+           {:ok, path} <- create_target_file(channel, path, options),
+           :ok <- send_data(channel, iodata, path) do
+        path = Helpers.expand_path(path)
+        from = Helpers.expand_path(config.directory)
+        identifier = Path.relative_to(path, from)
+        {:ok, identifier}
+      else
+        any -> {:error, any}
+      end
+    end
+
     defp do_get_info(config, identifier, options) do
       channel = Keyword.get(options, :channel)
       path = Path.join(config.directory, identifier)
@@ -416,7 +451,41 @@ if Code.ensure_loaded? :ssh_sftp do
       end)
     end
 
+    defp send_data(channel, iodata, target_path) do
+      target_path = String.to_charlist(target_path)
+      file_opts = [:write, :binary]
 
+      with {:ok, {_window, packet_size}} <- :ssh_sftp.send_window(channel),
+           {:ok, handle} <- :ssh_sftp.open(channel, target_path, file_opts) do
+        result = do_send_data(channel, handle, iodata, packet_size)
+        :ssh_sftp.close(channel, handle)
+        result
+      end
+    end
+
+    defp do_send_data(channel, handle, iodata, packet_size) do
+      iodata
+      |> IO.iodata_to_binary()
+      |> chunk_binary(packet_size)
+      |> Enum.reduce_while([], fn data, acc ->
+        case :ssh_sftp.awrite(channel, handle, data) do
+          {:async, _n} = result -> {:cont, [result | acc]}
+          other -> {:halt, other}
+        end
+      end)
+      |> handle_async_replies()
+    end
+
+    defp chunk_binary(binary, byte_size, acc \\ [])
+
+    defp chunk_binary(binary, byte_size, acc) when byte_size(binary) <= byte_size do
+      Enum.reverse([binary | acc])
+    end
+
+    defp chunk_binary(binary, byte_size, acc) do
+      <<chunk::size(byte_size), rest::binary>> = binary
+      chunk_binary(rest, byte_size, [<<chunk::size(byte_size)>> | acc])
+    end
 
 
     defp build_target_path(config, options) do

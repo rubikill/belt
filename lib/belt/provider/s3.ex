@@ -175,6 +175,18 @@ if Code.ensure_loaded? ExAws.S3 do
       end
     end
 
+    @doc """
+    Implementation of the `Belt.Provider.store_data/3` callback.
+    """
+    def store_data(config, iodata, options) do
+      aws_config = get_aws_config(config, options)
+
+      with {:ok, identifier} <- create_identifier(config, aws_config, options),
+           {:ok, _} <- do_store_data(config, aws_config, identifier, iodata) do
+        do_get_info(config, aws_config, identifier, options)
+      end
+    end
+
     defp do_store(config, aws_config, identifier, file_source) do
       requested_hashes = [:md5, :sha, :sha256]
       hashes = Belt.Hasher.hash_file(file_source, requested_hashes)
@@ -183,6 +195,17 @@ if Code.ensure_loaded? ExAws.S3 do
 
       ExAws.S3.Upload.stream_file(file_source)
       |> ExAws.S3.upload(config.bucket, identifier, meta: meta_opts)
+      |> ExAws.request(aws_config)
+    end
+
+    defp do_store_data(config, aws_config, identifier, iodata) do
+      requested_hashes = [:md5, :sha, :sha256]
+      binary = IO.iodata_to_binary(iodata)
+      hashes = Belt.Hasher.hash(binary, requested_hashes)
+      meta_opts = Enum.zip(requested_hashes, hashes)
+        |> Enum.map(fn({key, val}) -> {"belt-hash-#{key}", val} end)
+
+      ExAws.S3.put_object(config.bucket, identifier, binary, meta: meta_opts)
       |> ExAws.request(aws_config)
     end
 
