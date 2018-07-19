@@ -1,14 +1,14 @@
 pipelines:
   default:
-    - step:
-        image: elixir:latest
-        name: Latest Elixir
-        script:
-          - mix local.hex --force
-          - mix local.rebar --force
-          - mix deps.get
-          - mix test
     - parallel:
+        - step:
+            image: elixir:latest
+            name: Latest Elixir
+            script:
+            - mix local.hex --force
+            - mix local.rebar --force
+            - mix deps.get
+            - mix test
         - step:
             image: elixir:1.6-alpine
             name: Elixir 1.6
@@ -17,7 +17,6 @@ pipelines:
             - mix local.rebar --force
             - mix deps.get
             - mix test
-    - parallel:
         - step:
             image: elixir:1.5-alpine
             name: Elixir 1.5
@@ -26,7 +25,6 @@ pipelines:
             - mix local.rebar --force
             - mix deps.get
             - mix test
-    - parallel:
         - step:
             image: elixir:1.4-slim
             name: Elixir 1.4
