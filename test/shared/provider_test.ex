@@ -61,8 +61,8 @@ defmodule Belt.Test.Provider do
           %{provider: provider} = context do
         {:ok, config} = provider.new(config_opts(context))
 
-        assert {:ok, %Belt.FileInfo{}} = Belt.store_data(config, "foo", "foo.txt")
-        assert {:ok, %Belt.FileInfo{}} = Belt.store_data(config, ["<p>", ["foo"],"</p>"], "foo.txt")
+        assert {:ok, %Belt.FileInfo{}} = Belt.store_data(config, "foo", key: "foo.txt")
+        assert {:ok, %Belt.FileInfo{}} = Belt.store_data(config, ["<p>", ["foo"],"</p>"], key: "foo.txt")
       end
 
       test "store a file asynchronously",
