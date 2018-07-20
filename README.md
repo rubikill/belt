@@ -1,7 +1,7 @@
 # Belt
-[![Hex.pm](https://img.shields.io/hexpm/v/belt.svg)](https://hex.pm/packages/ex_aws)
+[![Hex.pm](https://img.shields.io/hexpm/v/belt.svg)](https://hex.pm/packages/belt)
 [![Hexdocs.pm](https://img.shields.io/badge/hexdocs-release-blue.svg)](https://hexdocs.pm/belt/getting-started.html)
-[!License(https://img.shields.io/hexpm/l/belt.svg)](https://bitbucket.org/pentacent/belt/src/master/LICENSE)
+[![License](https://img.shields.io/hexpm/l/belt.svg)](https://bitbucket.org/pentacent/belt/src/master/LICENSE)
 [![Build Status](https://img.shields.io/bitbucket/pipelines/pentacent/belt.svg)](https://bitbucket.org/pentacent/belt/addon/pipelines/home)
 
 Extensible Elixir OTP Application for storing files remotely or locally through
@@ -47,12 +47,13 @@ end
 ```
 
 ### Installation for the S3 backend
-If you want to use the S3 backend, you also need to add [ExAws](https://github.com/CargoSense/ex_aws) as well as [Hackney](https://hex.pm/packages/hackney) and [sweet_xml](https://hex.pm/packages/sweet_xml) (which are required by ExAws) to your dependencies and applications list:
+If you want to use the S3 backend, you also need to add [ExAws](https://github.com/ex-aws/ex_aws/) with [ExAws S3](https://github.com/ex-aws/ex_aws_s3) as well as [Hackney](https://hex.pm/packages/hackney) and [sweet_xml](https://hex.pm/packages/sweet_xml) (which are required by ExAws) to your dependencies and applications list:
 ```elixir
 def deps do
-  [{:belt, "~> 0.1.0"},
-   {:ex_aws, "~> 1.0"},
-   {:hackney, "~> 1.6"},
+  [{:belt, "~> 0.4.0"},
+   {:ex_aws, "~> 2.1"},
+   {:ex_aws_s3, "~> 2.0"},
+   {:hackney, "~> 1.9"},
    {:sweet_xml, "~> 0.6"}]
 end
 

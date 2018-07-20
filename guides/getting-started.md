@@ -8,7 +8,7 @@ list in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:belt, "~> 0.1.0"}]
+  [{:belt, "~> 0.4.0"}]
 end
 
 def application do
@@ -33,12 +33,13 @@ config :belt,
 `Belt.Provider.SFTP` requires `:ssh_sftp` which is already included in many OTP distributions.
 
 #### Belt.Provider.S3
-If you want to use `Belt.Provider.S3`, you need to make sure to include [ExAws](https://github.com/CargoSense/ex_aws) as well its dependencies [Hackney](https://hex.pm/packages/hackney) and [sweet_xml](https://hex.pm/packages/sweet_xml) (which are required by ExAws) to your dependencies and applications list:
+If you want to use `Belt.Provider.S3`, you need to make sure to include [ExAws](https://github.com/ex-aws/ex_aws/) with [ExAws S3](https://github.com/ex-aws/ex_aws_s3) as well as their dependencies [Hackney](https://hex.pm/packages/hackney) and [sweet_xml](https://hex.pm/packages/sweet_xml) (which are required by ExAws) to your dependencies and applications list:
 ```elixir
 def deps do
-  [{:belt, "~> 0.1.0"},
-   {:ex_aws, "~> 1.0"},
-   {:hackney, "~> 1.6"},
+  [{:belt, "~> 0.4.0"},
+   {:ex_aws, "~> 2.1"},
+   {:ex_aws_s3, "~> 2.0"},
+   {:hackney, "~> 1.9"},
    {:sweet_xml, "~> 0.6"}]
 end
 
