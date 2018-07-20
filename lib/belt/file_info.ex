@@ -11,6 +11,6 @@ defmodule Belt.FileInfo do
     size: nil,
     hashes: [],
     modified: nil,
-    url: :unavailable,
+    url: :unavailable
   )
 end
