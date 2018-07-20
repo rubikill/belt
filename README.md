@@ -1,4 +1,8 @@
 # Belt
+[![Hex.pm](https://img.shields.io/hexpm/v/belt.svg)](https://hex.pm/packages/ex_aws)
+[![Hexdocs.pm](https://img.shields.io/badge/hexdocs-release-blue.svg)](https://hexdocs.pm/belt/getting-started.html)
+[!License(https://img.shields.io/hexpm/l/belt.svg)](https://bitbucket.org/pentacent/belt/src/master/LICENSE)
+[![Build Status](https://img.shields.io/bitbucket/pipelines/pentacent/belt.svg)](https://bitbucket.org/pentacent/belt/addon/pipelines/home)
 
 Extensible Elixir OTP Application for storing files remotely or locally through
 a unified API. Backends currently exist for the local filesystem, SFTP and
