@@ -46,9 +46,9 @@ defmodule Belt.Provider do
 
 
   @typedoc """
-  Options supported by all providers for `Belt.store/3` and `Belt.store_async/3`.
-  Additional options might be supported by certain providers and are documented
-  there.
+  Options supported by all providers for `Belt.store/3`, `Belt.store_async/3`,
+  `Belt.store_data/3` and `Belt.store_data_async/3. Additional options might be
+  supported by certain providers and are documented there.
   """
   @type store_option ::
     {:hashes, [:crypto.hash_algorithms]} |
@@ -124,6 +124,13 @@ defmodule Belt.Provider do
   Stores a file using the provided configuration.
   """
   @callback store(configuration, file_source :: file_source, [store_option]) ::
+    {:ok, Belt.FileInfo.t} |
+    {:error, term}
+
+  @doc """
+  Stores an in-memory iodata using the provided configuration.
+  """
+  @callback store_data(configuration, iodata, [store_option]) ::
     {:ok, Belt.FileInfo.t} |
     {:error, term}
 

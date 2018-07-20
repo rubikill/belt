@@ -67,6 +67,23 @@ defmodule Belt.Provider.Filesystem do
   Implementation of the `Belt.Provider.store/3` callback.
   """
   def store(config, file_source, options) do
+    with {:ok, path} <- prepare_store(config, options),
+         :ok <- File.cp(file_source, path) do
+      get_info(config, Path.relative_to(path, config.directory), options)
+    end
+  end
+
+  @doc """
+  Implementation of the `Belt.Provider.store_data/3 callback.
+  """
+  def store_data(config, iodata, options) do
+    with {:ok, path} <- prepare_store(config, options),
+         :ok <- File.write(path, iodata) do
+      get_info(config, Path.relative_to(path, config.directory), options)
+    end
+  end
+
+  defp prepare_store(config, options) do
     directory = config.directory
     scope = Keyword.get(options, :scope, "")
     key = Keyword.get(options, :key)
@@ -75,12 +92,9 @@ defmodule Belt.Provider.Filesystem do
       do: @max_renames,
       else: 0
 
-    with {:ok, path} <- create_target_file(directory, scope, key,
-                                           overwrite: overwrite,
-                                           max_renames: max_renames),
-         :ok <- File.cp(file_source, path) do
-      get_info(config, Path.relative_to(path, directory), options)
-    end
+    create_target_file(directory, scope, key,
+                       overwrite: overwrite,
+                       max_renames: max_renames)
   end
 
   defp create_target_file(directory, scope, key, options) do

@@ -1,6 +1,6 @@
 defmodule Belt.Hasher do
   @moduledoc """
-  Library for hashing files, streams and binary data.
+  Library for hashing files, streams and iodata.
 
   ## Usage
   ```
@@ -44,7 +44,7 @@ defmodule Belt.Hasher do
     {:case, :lower | :upper}
 
   @doc """
-  Hashes binary data with the given hashing algorithm(s).
+  Hashes iodata with the given hashing algorithm(s).
 
   ## Supported algorithms
   All algorithms supported by `:crypto.hash/2` can be used with Hasher.
@@ -61,16 +61,17 @@ defmodule Belt.Hasher do
   #=> "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
   ```
   """
-  @spec hash(binary, [:crypto.hash_algorithms], [option]) :: [binary]
-  @spec hash(binary, :crypto.hash_algorithms, [option]) :: binary
+  @spec hash(iodata, [:crypto.hash_algorithms], [option]) :: [binary]
+  @spec hash(iodata, :crypto.hash_algorithms, [option]) :: binary
 
-  def hash(data, algs, options \\ [])
-  def hash(data, alg, options) when not is_list(alg),
-    do: hash(data, [alg], options) |> Enum.at(0)
+  def hash(iodata, algs, options \\ [])
 
-  def hash(data, algs, options) do
+  def hash(iodata, alg, options) when not is_list(alg),
+    do: hash(iodata, [alg], options) |> Enum.at(0)
+
+  def hash(iodata, algs, options) do
     algs
-    |> Enum.map(&:crypto.hash(&1, data))
+    |> Enum.map(&:crypto.hash(&1, iodata))
     |> Enum.map(&(postprocess_hash(&1, options)))
   end
 

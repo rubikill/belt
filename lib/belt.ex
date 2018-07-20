@@ -69,7 +69,6 @@ defmodule Belt do
     For most providers, this corresponds to the name of a subdirectory.
   - `:timeout` - `integer` - Timeout (in milliseconds) for the request
   """
-
   @spec store(Belt.Provider.configuration, Belt.Provider.file_source, [Belt.Provider.store_option]) ::
         {:ok, Belt.FileInfo.t} |
         {:error, term}
@@ -99,7 +98,6 @@ defmodule Belt do
   """
   @spec store_async(Belt.Provider.configuration, Belt.Provider.file_source, list) ::
         {:ok, Belt.Job.t}
-
   def store_async(config, file_source, options \\ [])
 
   def store_async(config, %{filename: key, path: path}, options) do
@@ -112,6 +110,54 @@ defmodule Belt do
     options = Keyword.put_new(options, :key, Path.basename(path))
     path = Path.expand(path)
     GenServer.call(__MODULE__, {:store, [config, path, options]})
+  end
+
+
+  @doc """
+  Stores `iodata` using `config` and waits for the upload to complete.
+
+  Use this instead of `store/3` when your data is in-memory.
+
+  Returns `{:ok, %Belt.FileInfo{}}` or `{:error, reason}`
+
+  ## Options
+  The following options are supported by all providers. Some providers might
+  offer additional options.
+
+  - `:key` - `String.t` - The key to be used for storing the file. For most
+    providers, this corresponds to the file name. Required.
+  - `:hashes` - `[:crypto.hash_algorithms]` - Hashes to include in the returned
+    `Belt.FileInfo` struct.
+  - `:overwrite` - `true | false | :rename` - How to handle conflicting keys.
+    Defaults to `:rename`.
+  - `:scope` - `String.t` - A namespace to be used for storing the file.
+    For most providers, this corresponds to the name of a subdirectory.
+  - `:timeout` - `integer` - Timeout (in milliseconds) for the request
+  """
+  @spec store_data(Belt.Provider.configuration, iodata, [Belt.Provider.store_option]) ::
+        {:ok, Belt.FileInfo.t} |
+        {:error, term}
+  def store_data(config, iodata, options \\ []) do
+    unless options[:key], do: raise ":key option must be provided to store_data/3"
+    {:ok, job} = store_data_async(config, iodata, options)
+    await(job, options)
+  end
+
+
+  @doc """
+  Asynchronously stores `iodata` using `config`.
+
+  Use this instead of `store_async/3` when your data is in-memory.
+
+  Returns `{:ok, Belt.Job.t}`
+
+  For available options see `Belt.store/3`.
+  """
+  @spec store_data_async(Belt.Provider.configuration, iodata, list) ::
+        {:ok, Belt.Job.t}
+  def store_data_async(config, iodata, options \\ []) do
+    unless options[:key], do: raise ":key option must be provided to store_data_async/3"
+    GenServer.call(__MODULE__, {:store_data, [config, iodata, options]})
   end
 
 
@@ -305,7 +351,7 @@ defmodule Belt do
   end
 
 
-  @job_types [:store, :delete, :delete_scope, :delete_all, :get_info, :get_url,
+  @job_types [:store, :store_data, :delete, :delete_scope, :delete_all, :get_info, :get_url,
               :list_files, :test_connection]
   @doc false
   def handle_call({type, params}, _from, state)
