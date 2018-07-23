@@ -301,7 +301,7 @@ defmodule Belt do
   """
   @spec await(Belt.Job.t, [{atom, term}]) ::
         {:ok, term} | {:error, :timeout} | {:error, term}
-  def await(job, options) do
+  def await(job, options \\ []) do
     timeout = Keyword.get(options, :timeout, @timeout)
     with {:ok, reply} <- Belt.Job.await_and_shutdown(job, timeout) do
       reply
