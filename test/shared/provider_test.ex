@@ -70,7 +70,7 @@ defmodule Belt.Test.Provider do
         {:ok, config} = provider.new(config_opts(context))
 
         assert {:ok, job_id} = Belt.store_async(config, file)
-        assert {:ok, %Belt.FileInfo{}} = Belt.await(job_id, timeout: 2000)
+        assert {:ok, %Belt.FileInfo{}} = Belt.await(job_id)
       end
 
       test "delete a file",
