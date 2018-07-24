@@ -264,6 +264,9 @@ defmodule Belt do
   offer additional options.
   - `:timeout` - Timeout for this call in milliseconds
   """
+  @spec delete_all(Belt.Provider.configuration, [Belt.Provider.delete_option]) ::
+    :ok |
+    {:error, term}
   def delete_all(config, options \\ []) do
     {:ok, job} = GenServer.call(__MODULE__, {:delete_all, [config, options]})
     await(job, options)
@@ -281,6 +284,9 @@ defmodule Belt do
   offer additional options.
   - `:timeout` - Timeout for this call in milliseconds
   """
+  @spec delete_scope(Belt.Provider.configuration, String.t, [Belt.Provider.delete_option]) ::
+  :ok |
+  {:error, term}
   def delete_scope(config, scope, options \\ [])
   def delete_scope(_, "", _), do: {:error, :invalid_scope}
 
@@ -298,9 +304,17 @@ defmodule Belt do
   ## Options
   - `:timeout` - `integer` - Maximum time (in milliseconds) to wait for the
     job to finish
+
+  ## Returns
+  This function relays the return values of the individual Job callbacks:
+
+  - `:ok` - Job completed successfully without additional return value (e. g. `Belt.delete/3`)
+  - `{:ok, term}` - Job completed successfully with additional return value (e. g. `Belt.store/2`)
+  - `{:error, term}` - Job experienced an error, further specified in `term`
+  - `{:error, :timeout}` - Job timed out
   """
   @spec await(Belt.Job.t, [{atom, term}]) ::
-        {:ok, term} | {:error, :timeout} | {:error, term}
+        :ok | {:ok, term} | {:error, :timeout} | {:error, term}
   def await(job, options \\ []) do
     timeout = Keyword.get(options, :timeout, @timeout)
     with {:ok, reply} <- Belt.Job.await_and_shutdown(job, timeout) do
