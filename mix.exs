@@ -37,9 +37,9 @@ defmodule Belt.Mixfile do
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    [{:gen_stage, "~> 0.12.1"},
+    [{:gen_stage, "~> 0.12"},
      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
-     {:coverex, "~> 1.4.10", only: :test},
+     {:coverex, "~> 1.4", only: :test},
      {:excoveralls, "~> 0.6", only: :test},
      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
      {:ex_aws, "~> 2.1", optional: true},
