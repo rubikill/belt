@@ -14,10 +14,12 @@ defmodule Belt.Test.Ecto.Config do
   test "cast!" do
     config = get_config!()
     assert Config.cast!(config)
-    assert_raise Ecto.CastError, fn ->
+
+    assert_raise FunctionClauseError, fn ->
       Config.cast!(%{some_key: :foo})
     end
-    assert_raise Ecto.CastError, fn ->
+
+    assert_raise FunctionClauseError, fn ->
       Config.cast!(nil)
     end
   end
@@ -37,14 +39,15 @@ defmodule Belt.Test.Ecto.Config do
   end
 
   defp get_config!() do
-    {:ok, config} = Belt.Provider.Filesystem.new(
-      directory: ".", base_url: "https://example.org/")
+    {:ok, config} = Belt.Provider.Filesystem.new(directory: ".", base_url: "https://example.org/")
     config
   end
 
   defp get_serialized_config!() do
-    %{"provider" => "belt_atom::Elixir.Belt.Provider.Filesystem",
+    %{
+      "provider" => "belt_atom::Elixir.Belt.Provider.Filesystem",
       "directory" => ".",
-      "base_url" => "https://example.org/"}
+      "base_url" => "https://example.org/"
+    }
   end
 end

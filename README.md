@@ -1,3 +1,5 @@
+Support Ecto SQL 3.0
+
 # Belt
 [![Hex.pm](https://img.shields.io/hexpm/v/belt.svg)](https://hex.pm/packages/belt)
 [![Hexdocs.pm](https://img.shields.io/badge/hexdocs-release-blue.svg)](https://hexdocs.pm/belt/getting-started.html)
